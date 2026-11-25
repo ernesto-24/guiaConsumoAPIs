@@ -6,11 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.guiaconsumoapis.ui.list.ListaPokemonScreen
 import com.example.guiaconsumoapis.ui.theme.GuiaConsumoAPIsTheme
 
 
@@ -21,13 +23,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GuiaConsumoAPIsTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            MaterialTheme {
+                ListaPokemonScreen()
             }
         }
     }
@@ -48,3 +45,4 @@ fun GreetingPreview() {
         Greeting("Android")
     }
 }
+
