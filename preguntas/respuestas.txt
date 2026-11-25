@@ -1,0 +1,72 @@
+PREGUNTAS DE REPASO - CONSUMO DE APIs EN ANDROID
+================================================
+
+1. ¿Qué hace cada una de las cuatro bibliotecas (Retrofit, OkHttp, Gson, corrutinas)?
+   - Retrofit: convierte una interfaz de Kotlin (con anotaciones @GET, @Query, @Path...)
+     en un cliente HTTP listo para usar. Nosotros declaramos QUÉ pedir; Retrofit genera el CÓMO.
+   - OkHttp: es el motor que realmente hace las peticiones HTTP (conexiones, timeouts,
+     caché, interceptores como el de logging). Retrofit lo usa por debajo.
+   - Gson: convierte el JSON de la respuesta en objetos de Kotlin (data classes) y viceversa.
+     Se conecta a Retrofit mediante GsonConverterFactory.
+   - Corrutinas: permiten hacer la llamada de red (suspend fun) sin bloquear el hilo
+     principal, escribiendo código secuencial en lugar de callbacks.
+
+2. ¿Qué pasa si falta el permiso INTERNET? ¿Compila la app?
+   Sí, compila sin problemas: el permiso se revisa en tiempo de ejecución, no al compilar.
+   Pero al hacer la petición el sistema la bloquea y se lanza una excepción
+   (normalmente UnknownHostException o SocketException "EPERM / missing INTERNET permission?",
+   ambas son IOException),
+   por lo que la app muestra el error de "sin conexión" o puede cerrarse si no se captura.
+
+3. ¿Por qué solo el repositorio llama a la API?
+   Para separar responsabilidades. El repositorio es la única fuente de datos: maneja
+   los errores (try/catch), convierte DTOs a modelos y devuelve un Resultado.
+   Así la UI y el ViewModel no dependen de Retrofit, el código es más fácil de probar
+   (se puede pasar una API falsa) y si cambia la API solo se toca un lugar.
+
+4. ¿Qué diferencia hay entre @Query y @Path?
+   - @Query agrega parámetros después del "?" en la URL:
+       @Query("limit") 20  ->  /pokemon?limit=20&offset=0
+   - @Path reemplaza un marcador {..} dentro de la ruta:
+       @GET("pokemon/{nombre}") + @Path("nombre") "pikachu"  ->  /pokemon/pikachu
+   @Query suele ser para filtros/paginación (opcionales); @Path para identificar un recurso.
+
+5. ¿Por qué la baseUrl termina en / y la ruta del @GET no empieza con /?
+   Retrofit une ambas como URLs relativas. La baseUrl DEBE terminar en "/" (si no,
+   Retrofit lanza IllegalArgumentException). Si la ruta del @GET empezara con "/",
+   se trataría como ruta absoluta y reemplazaría la parte final de la baseUrl:
+       base "https://pokeapi.co/api/v2/" + "pokemon"  -> https://pokeapi.co/api/v2/pokemon  (bien)
+       base "https://pokeapi.co/api/v2/" + "/pokemon" -> https://pokeapi.co/pokemon         (mal)
+
+6. ¿Qué excepción aparece sin internet? ¿Y con un 404?
+   - Sin internet: IOException (normalmente UnknownHostException o
+     SocketTimeoutException, que heredan de IOException).
+   - Con un 404 (o cualquier código fuera de 2xx): retrofit2.HttpException,
+     de la que se puede leer e.code() para mostrar el código.
+
+7. ¿Para qué sirve @SerializedName? ¿Qué pasa si se omite?
+   Indica a Gson el nombre exacto del campo en el JSON cuando es distinto al nombre
+   de la propiedad en Kotlin. Ej: @SerializedName("front_default") val imagenFrontal: String?
+   Si se omite y los nombres no coinciden, Gson no encuentra el campo y deja el valor
+   en null (o 0/false), sin dar error; eso puede causar un NullPointerException después.
+   Si los nombres ya coinciden, no hace falta.
+
+8. ¿Cómo se lee un campo que llega como texto con un JSON dentro?
+   Primero se recibe como String normal en el DTO y después se convierte con Gson
+   en un segundo paso:
+       val interno = Gson().fromJson(dto.campoTexto, MiClaseInterna::class.java)
+   (Para listas se usa TypeToken: object : TypeToken<List<MiClase>>() {}.type)
+
+9. ¿Por qué la API key va en local.properties y no en el código?
+   Porque local.properties está en .gitignore y no se sube al repositorio, así la
+   clave no queda expuesta en GitHub ni en el historial de git. Gradle la lee y la
+   expone como BuildConfig.API_KEY. Cada desarrollador pone su propia clave localmente.
+   (Ojo: igual queda dentro del APK compilado; no es secreto absoluto, solo evita
+   filtrarla en el código fuente.)
+
+10. ¿Por qué se vuelve a lanzar la CancellationException?
+    Porque cancelar una corrutina (por ejemplo, cuando se destruye el ViewModel y se
+    cancela viewModelScope) no es un error: es el mecanismo normal de las corrutinas.
+    Si el catch (e: Exception) la "tragara", la corrutina no se cancelaría bien y
+    seguiría ejecutándose o mostraría un mensaje de error falso. Por eso se captura
+    primero y se relanza con throw e, antes de los demás catch.

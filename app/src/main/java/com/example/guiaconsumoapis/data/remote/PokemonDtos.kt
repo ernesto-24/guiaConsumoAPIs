@@ -17,3 +17,14 @@ fun PokemonItemDto.aResumen(): PokemonResumen {
 }
 
 data class PokemonResumen(val id: Int, val nombre: String, val imagenUrl: String)
+
+// GET https://pokeapi.co/api/v2/pokemon/{nombre} (solo los campos que usamos)
+data class PokemonDetalleDto(
+    val id: Int,
+    val name: String,
+    val height: Int, // en decimetros
+    val weight: Int, // en hectogramos
+    val types: List<TipoSlotDto>
+)
+data class TipoSlotDto(val type: TipoDto)
+data class TipoDto(val name: String)

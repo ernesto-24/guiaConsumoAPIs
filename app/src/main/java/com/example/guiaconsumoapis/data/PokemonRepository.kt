@@ -1,6 +1,7 @@
 package com.example.guiaconsumoapis.data
 
 import com.example.guiaconsumoapis.data.remote.PokeApiService
+import com.example.guiaconsumoapis.data.remote.PokemonDetalleDto
 import com.example.guiaconsumoapis.data.remote.PokemonResumen
 import com.example.guiaconsumoapis.data.remote.RetrofitClient
 import com.example.guiaconsumoapis.data.remote.aResumen
@@ -27,4 +28,8 @@ class PokemonRepository(private val api: PokeApiService = RetrofitClient.api) {
         } catch (e: Exception) {
             Resultado.Error("Ocurrió un error inesperado.")
         }
+
+    /** Detalle con @Path: /pokemon/{nombre} */
+    suspend fun obtenerPokemon(nombre: String): Resultado<PokemonDetalleDto> =
+        llamadaSegura { api.obtenerPokemon(nombre) }
 }

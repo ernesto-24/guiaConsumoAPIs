@@ -21,7 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.guiaconsumoapis.ui.directorio.DirectorioScreen
-import com.example.guiaconsumoapis.ui.list.ListaPokemonScreen
+import com.example.guiaconsumoapis.ui.formulario.FormularioScreen
+import com.example.guiaconsumoapis.ui.list.PokemonNavegacion
 import com.example.guiaconsumoapis.ui.publicaciones.PublicacionesScreen
 import com.example.guiaconsumoapis.ui.theme.GuiaConsumoAPIsTheme
 
@@ -37,10 +38,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** Pestañas para cambiar entre las tres APIs de la guia. */
+/** Pestañas para cambiar entre las APIs de la guia. */
 @Composable
 fun PantallaPrincipal() {
-    val pestanas = listOf("Pokémon", "Publicaciones", "Directorio")
+    val pestanas = listOf("Pokémon", "Publicaciones", "Formulario", "Directorio")
     var seleccionada by rememberSaveable { mutableIntStateOf(0) }
     Scaffold { relleno ->
         Column(Modifier.fillMaxSize().padding(relleno)) {
@@ -55,8 +56,9 @@ fun PantallaPrincipal() {
             }
             Box(Modifier.fillMaxSize()) {
                 when (seleccionada) {
-                    0 -> ListaPokemonScreen()
+                    0 -> PokemonNavegacion()
                     1 -> PublicacionesScreen()
+                    2 -> FormularioScreen()
                     else -> DirectorioScreen()
                 }
             }
